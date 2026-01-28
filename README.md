@@ -201,17 +201,4 @@ Common scripts (check `package.json` for exact names):
 ## Notes & Limitations
 
 - Currently optimized for a small number of secrets (simple payload structure). You can extend the model to store multiple entries.
-- There is no built‑in password strength meter or brute‑force protection.
-- Always keep your **service account key** and **.env** files private.
 
----
-
-## License
-
-This project is intended as a learning / portfolio project. Add an explicit license here if you plan to open source it (e.g., MIT, Apache‑2.0).
-
----
-
-## Contributing
-
-Pull requests and suggestions are welcome. If you find a bug or have an idea for improvement (multiple vault entries, sharing, UI tweaks, etc.), feel free to open an issue or PR in the GitHub repository.
