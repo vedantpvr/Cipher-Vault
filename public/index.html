@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CipherVault - Login</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        :root {
+            /* New palette: 1e2749, 273469, e4d9ff, fafaff */
+            --cv-primary-dark: #1E2749;
+            --cv-primary: #273469;
+            --cv-accent: #E4D9FF;
+            --cv-accent-soft: #FAFAFF;
+            --cv-muted: #273469;
+            --cv-bg: #1E2749;
+            --cv-text: #1E2749;
+            --cv-text-soft: rgba(39, 52, 105, 0.75);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: var(--cv-text);
+            background:
+                radial-gradient(circle at top left, rgba(228, 217, 255, 0.4), transparent 55%),
+                radial-gradient(circle at bottom right, rgba(39, 52, 105, 0.85), transparent 60%),
+                var(--cv-primary-dark);
+        }
+
+        .card {
+            position: relative;
+            width: 100%;
+            max-width: 960px;
+            padding: 2.1rem 2.4rem 2.3rem;
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(250, 250, 255, 0.98), rgba(228, 217, 255, 0.96));
+            box-shadow:
+                0 24px 60px rgba(11, 15, 33, 0.55),
+                0 0 0 1px rgba(228, 217, 255, 0.9);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            color: var(--cv-text);
+            overflow: hidden;
+            text-align: left;
+            animation: floatIn 0.6s ease-out;
+        }
+
+        .card::before,
+        .card::after {
+            content: "";
+            position: absolute;
+            border-radius: 999px;
+            filter: blur(26px);
+            opacity: 0.5;
+            z-index: -1;
+        }
+
+        .card::before {
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle, rgba(228, 217, 255, 0.85), transparent 65%);
+            top: -60px;
+            right: -80px;
+        }
+
+        .card::after {
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(39, 52, 105, 0.8), transparent 70%);
+            bottom: -80px;
+            left: -60px;
+        }
+
+        .navbar {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding-bottom: 1.1rem;
+            border-bottom: 1px solid rgba(228, 217, 255, 0.9);
+            margin-bottom: 1.2rem;
+            text-align: center;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+        }
+
+        .logo-circle {
+            width: 44px;
+            height: 44px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at 30% 0, var(--cv-accent), var(--cv-accent-soft) 55%, var(--cv-primary) 100%);
+            box-shadow: 0 10px 18px rgba(10, 14, 40, 0.65);
+            color: var(--cv-primary-dark);
+            font-size: 1.3rem;
+        }
+
+        .brand-text h1 {
+            margin: 0;
+            font-size: 1.3rem;
+            letter-spacing: 0.03em;
+            color: var(--cv-primary);
+        }
+
+        .brand-text .subtitle {
+            margin: 0.1rem 0 0;
+            font-size: 0.8rem;
+            color: var(--cv-text-soft);
+        }
+
+        .nav-right {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.78rem;
+        }
+
+        #status-msg {
+            margin: 0;
+            font-size: 0.78rem;
+            color: var(--cv-primary);
+        }
+
+        .pill-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+        }
+
+        .auth-actions {
+            display: flex;
+            gap: 0.4rem;
+            margin-top: 0.15rem;
+            justify-content: center;
+        }
+
+        .pill {
+            padding: 0.25rem 0.6rem;
+            border-radius: 999px;
+            background: rgba(250, 250, 255, 0.9);
+            border: 1px solid rgba(228, 217, 255, 0.9);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--cv-text-soft);
+        }
+
+        .pill.accent {
+            border-color: var(--cv-accent);
+            background: rgba(228, 217, 255, 0.25);
+            color: var(--cv-primary);
+        }
+
+        .ghost-button {
+            padding: 0.3rem 0.8rem;
+            border-radius: 999px;
+            border: 1px solid rgba(228, 217, 255, 0.9);
+            background: rgba(250, 250, 255, 0.75);
+            color: var(--cv-primary);
+            font-size: 0.78rem;
+            font-weight: 500;
+            width: auto;
+            box-shadow: none;
+        }
+
+        .ghost-button:hover {
+            background: rgba(228, 217, 255, 0.3);
+            border-color: var(--cv-accent);
+            transform: translateY(0);
+        }
+
+        /* Navbar login button gets a stronger accent color */
+        #nav-login-btn {
+            border: none;
+            background: linear-gradient(135deg, var(--cv-accent), var(--cv-accent-soft));
+            color: var(--cv-primary-dark);
+            box-shadow: 0 6px 14px rgba(11, 15, 33, 0.45);
+        }
+
+        #nav-login-btn:hover {
+            background: linear-gradient(135deg, var(--cv-accent-soft), var(--cv-accent));
+            box-shadow: 0 8px 18px rgba(11, 15, 33, 0.55);
+        }
+
+        button {
+            border: none;
+            padding: 0.7rem 1rem;
+            border-radius: 999px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-top: 0.7rem;
+            width: 100%;
+            transition: background 0.18s ease, transform 0.12s ease, box-shadow 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        button:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        #google-login-btn {
+            background: linear-gradient(135deg, var(--cv-accent), var(--cv-accent-soft));
+            color: var(--cv-primary-dark);
+            box-shadow: 0 14px 30px rgba(11, 15, 33, 0.45);
+        }
+
+        #google-login-btn:hover {
+            background: linear-gradient(135deg, var(--cv-accent-soft), var(--cv-accent));
+            transform: translateY(-1px);
+            box-shadow: 0 18px 36px rgba(11, 15, 33, 0.55);
+        }
+
+        #connect-drive-btn {
+            background: linear-gradient(135deg, var(--cv-primary), rgba(39, 52, 105, 0.9));
+            color: var(--cv-accent-soft);
+            font-weight: 600;
+            box-shadow: 0 12px 26px rgba(11, 15, 33, 0.6);
+        }
+
+        #connect-drive-btn:hover {
+            background: linear-gradient(135deg, rgba(39, 52, 105, 0.9), var(--cv-primary));
+            transform: translateY(-1px);
+        }
+
+        #encrypt-btn {
+            background: linear-gradient(135deg, var(--cv-accent), var(--cv-primary));
+            color: var(--cv-primary-dark);
+            box-shadow: 0 12px 26px rgba(11, 15, 33, 0.45);
+        }
+
+        #encrypt-btn:hover {
+            background: linear-gradient(135deg, var(--cv-accent-soft), var(--cv-accent));
+            transform: translateY(-1px);
+        }
+
+        #load-btn {
+            background: linear-gradient(135deg, rgba(228, 217, 255, 0.95), var(--cv-primary));
+            color: var(--cv-primary-dark);
+            box-shadow: 0 10px 24px rgba(11, 15, 33, 0.5);
+        }
+
+        #load-btn:hover {
+            background: linear-gradient(135deg, var(--cv-accent-soft), var(--cv-primary));
+            transform: translateY(-1px);
+        }
+
+        input {
+            width: 100%;
+            padding: 0.55rem 0.8rem;
+            margin: 0.25rem 0 0.65rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(228, 217, 255, 0.9);
+            background: rgba(250, 250, 255, 0.96);
+            color: var(--cv-text);
+            font-size: 0.88rem;
+            outline: none;
+            transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+        }
+
+        input::placeholder {
+            color: var(--cv-text-soft);
+        }
+
+        input:focus {
+            border-color: var(--cv-accent);
+            box-shadow: 0 0 0 1px rgba(228, 217, 255, 0.9);
+            background: #FAFAFF;
+        }
+
+        #login-section {
+            display: block;
+        }
+
+        #app-section {
+            display: none;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+            gap: 1.4rem;
+            align-items: flex-start;
+        }
+
+        .dashboard-main {
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+        }
+
+        .dashboard-side {
+            padding: 0.9rem 1rem;
+            border-radius: 1rem;
+            border: 1px dashed rgba(228, 217, 255, 0.9);
+            background: rgba(250, 250, 255, 0.9);
+            font-size: 0.84rem;
+            color: var(--cv-text-soft);
+        }
+
+        .dashboard-side h3 {
+            font-size: 0.95rem;
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+            color: var(--cv-text);
+        }
+
+        .dashboard-side ul {
+            padding-left: 1.1rem;
+            margin: 0.35rem 0 0.4rem;
+        }
+
+        .dashboard-side li {
+            margin-bottom: 0.25rem;
+        }
+
+        .section {
+            padding: 0.85rem 0.9rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(228, 217, 255, 0.9);
+            background: linear-gradient(135deg, rgba(250, 250, 255, 0.98), rgba(228, 217, 255, 0.8));
+            margin-bottom: 0.85rem;
+        }
+
+        .section-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--cv-text-soft);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .section-label span {
+            font-weight: 600;
+            color: var(--cv-text);
+        }
+
+        .badge-soft {
+            padding: 0.18rem 0.6rem;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            background: rgba(250, 250, 255, 0.9);
+            border: 1px solid rgba(228, 217, 255, 0.95);
+            color: var(--cv-text-soft);
+        }
+
+        .section-storage {
+            border-color: rgba(228, 217, 255, 0.9);
+        }
+
+        .section-master {
+            border-color: rgba(228, 217, 255, 0.95);
+            background: linear-gradient(135deg, rgba(228, 217, 255, 0.4), rgba(250, 250, 255, 0.98));
+        }
+
+        .section-add {
+            border-color: rgba(39, 52, 105, 0.4);
+            background: linear-gradient(135deg, rgba(39, 52, 105, 0.12), rgba(250, 250, 255, 0.98));
+        }
+
+        .section-vault {
+            border-color: rgba(228, 217, 255, 0.9);
+        }
+
+        h3, h4 {
+            margin: 0 0 0.5rem;
+            font-size: 0.98rem;
+            color: var(--cv-text);
+        }
+
+        hr {
+            border: none;
+            border-top: 1px dashed rgba(228, 217, 255, 0.9);
+            margin: 1.1rem 0 0.9rem;
+        }
+
+        .secrets-container {
+            margin-top: 0.65rem;
+            padding: 0.7rem 0.85rem;
+            border-radius: 0.85rem;
+            background: rgba(250, 250, 255, 0.98);
+            border: 1px solid rgba(228, 217, 255, 0.95);
+            font-size: 0.86rem;
+        }
+
+        #display-secret {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            background: rgba(228, 217, 255, 0.7);
+            padding: 0.15rem 0.35rem;
+            border-radius: 0.4rem;
+        }
+
+        .mini-label {
+            font-size: 0.78rem;
+            color: var(--cv-text-soft);
+            margin-bottom: 0.15rem;
+        }
+
+        .user-line {
+            font-size: 0.9rem;
+            margin-bottom: 0.65rem;
+            color: var(--cv-text);
+        }
+
+        .user-line span {
+            color: var(--cv-primary);
+            font-weight: 600;
+        }
+
+        @keyframes floatIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @media (max-width: 992px) {
+            body {
+                padding: 1.5rem;
+                align-items: flex-start;
+            }
+
+            .card {
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1.25rem;
+            }
+
+            .dashboard {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .navbar {
+                gap: 0.7rem;
+            }
+
+            .nav-right {
+                width: 100%;
+            }
+
+            .pill-row {
+                flex-wrap: wrap;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 1rem;
+            }
+
+            .card {
+                padding: 1.5rem 1.2rem 1.7rem;
+                border-radius: 18px;
+            }
+
+            .brand-text h1 {
+                font-size: 1.15rem;
+            }
+
+            button {
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <header class="navbar">
+            <div class="nav-left">
+                <div class="logo-circle">🔐</div>
+                <div class="brand-text">
+                    <h1>Cipher-Vault</h1>
+                    <p class="subtitle">End‑to‑end encrypted personal vault</p>
+                </div>
+            </div>
+            <div class="nav-right">
+                <div class="pill-row">
+                    <span class="pill accent">AES‑256</span>
+                    <span class="pill">Drive Backup</span>
+                </div>
+                <p id="status-msg">Loading...</p>
+                <div class="auth-actions" aria-label="Authentication controls">
+                    <button id="nav-login-btn" class="ghost-button" type="button">Login</button>
+                    <button id="logout-btn" class="ghost-button" type="button" style="display:none;">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="dashboard">
+            <section class="dashboard-main">
+                <div id="login-section">
+                    <button id="google-login-btn">
+                        <span>Sign in with Google</span>
+                    </button>
+                </div>
+
+                <div id="app-section">
+                    <p class="user-line">Welcome, <span id="user-name">User</span></p>
+                    
+                    <div class="section section-storage">
+                        <div class="section-label">
+                            <span>1. Storage Setup</span>
+                            <span class="badge-soft">Backs up to your Drive</span>
+                        </div>
+                        <button id="connect-drive-btn">Connect Google Drive</button>
+                    </div>
+
+                    <div class="section section-master">
+                        <div class="section-label">
+                            <span>2. Master Password</span>
+                            <span class="badge-soft">Never leaves this device</span>
+                        </div>
+                        <p class="mini-label">Choose a strong key that unlocks all secrets.</p>
+                        <input type="password" id="master-password" placeholder="Key to lock / unlock your vault">
+                    </div>
+
+                    <div class="section section-add">
+                        <div class="section-label">
+                            <span>3. Add Secret</span>
+                            <span class="badge-soft">Encrypted before upload</span>
+                        </div>
+                        <input type="text" id="secret-title" placeholder="Title (e.g. Facebook, Email)">
+                        <input type="text" id="secret-value" placeholder="Password or secret to store">
+                        <button id="encrypt-btn">Encrypt & Upload to Drive</button>
+                    </div>
+
+                    <hr>
+
+                    <div class="section section-vault">
+                        <div class="section-label">
+                            <span>4. My Secrets</span>
+                            <span class="badge-soft">Decrypt on demand</span>
+                        </div>
+                        <button id="load-btn">Load & Decrypt Vault</button>
+                        
+                        <div id="secrets-display" class="secrets-container" style="display: none;">
+                            <p><strong>Title:</strong> <span id="display-title"></span></p>
+                            <p><strong>Password:</strong> <span id="display-secret"></span></p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <aside class="dashboard-side">
+                <h3>How CipherVault works</h3>
+                <p>Protect your passwords with a simple, secure flow:</p>
+                <ul>
+                    <li>Sign in with your Google account.</li>
+                    <li>Set a master password known only to you.</li>
+                    <li>Secrets are encrypted locally and stored in Drive.</li>
+                    <li>Load and decrypt your vault on any device.</li>
+                </ul>
+                <p style="margin-top:0.45rem;">Your master password is never sent to the server or Google – it stays in your head and your browser only.</p>
+            </aside>
+        </main>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // --- PASTE YOUR FIREBASE CONFIG HERE ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCpmBGpi6vcmb9hs7JEfK75ZjXkCJRb1GY",
+            authDomain: "ciphervault-ab388.firebaseapp.com",
+            projectId: "ciphervault-ab388",
+            storageBucket: "ciphervault-ab388.firebasestorage.app",
+            messagingSenderId: "762112585195",
+            appId: "1:762112585195:web:4cd812f2441ec4cd317dae"
+        };
+
+        try {
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            const provider = new GoogleAuthProvider();
+            document.getElementById('status-msg').innerText = "Ready.";
+
+            const navLoginBtn = document.getElementById('nav-login-btn');
+            const logoutBtn = document.getElementById('logout-btn');
+
+            const triggerLogin = () => {
+                signInWithPopup(auth, provider).catch(e => alert(e.message));
+            };
+
+            // 1. Firebase Login
+            document.getElementById('google-login-btn').addEventListener('click', triggerLogin);
+            if (navLoginBtn) {
+                navLoginBtn.addEventListener('click', triggerLogin);
+            }
+
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', async () => {
+                    try {
+                        await signOut(auth);
+                    } catch (e) {
+                        alert(e.message);
+                    }
+                });
+            }
+
+            onAuthStateChanged(auth, async (user) => {
+                const loginSection = document.getElementById('login-section');
+                const appSection = document.getElementById('app-section');
+                const userNameEl = document.getElementById('user-name');
+
+                if (user) {
+                    if (loginSection) loginSection.style.display = 'none';
+                    if (appSection) appSection.style.display = 'block';
+                    if (userNameEl) userNameEl.innerText = user.displayName || 'User';
+                    if (navLoginBtn) navLoginBtn.style.display = 'none';
+                    if (logoutBtn) logoutBtn.style.display = 'inline-flex';
+                } else {
+                    if (loginSection) loginSection.style.display = 'block';
+                    if (appSection) appSection.style.display = 'none';
+                    if (userNameEl) userNameEl.innerText = 'User';
+                    if (navLoginBtn) navLoginBtn.style.display = 'inline-flex';
+                    if (logoutBtn) logoutBtn.style.display = 'none';
+                    document.getElementById('status-msg').innerText = 'Ready.';
+                }
+            });
+
+            // 2. Connect Drive (Backend Auth)
+            document.getElementById('connect-drive-btn').addEventListener('click', async () => {
+                const response = await fetch('/api/auth-url');
+                const data = await response.json();
+                window.location.href = data.url; // Redirect to Google
+            });
+
+            // 3. Encrypt & Save
+            document.getElementById('encrypt-btn').addEventListener('click', async () => {
+                const master = document.getElementById('master-password').value;
+                const secret = document.getElementById('secret-value').value;
+                const title = document.getElementById('secret-title').value;
+                
+                if(!master || !secret) { alert("Missing Master Password or Secret"); return; }
+
+                try {
+                    // Encrypt
+                    const payload = { title, secret };
+                    const encrypted = CryptoJS.AES.encrypt(JSON.stringify(payload), master).toString();
+                    
+                    document.getElementById('status-msg').innerText = "Uploading to Drive...";
+
+                    // Send to Server
+                    const res = await fetch('/api/save-vault', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ encryptedData: encrypted })
+                    });
+                    
+                    const result = await res.json();
+                    if(res.ok) {
+                        alert("Success! " + result.message);
+                        document.getElementById('status-msg').innerText = "Saved to Drive!";
+                    } else {
+                        alert("Error: " + result.error);
+                        document.getElementById('status-msg').innerText = "Upload Failed.";
+                    }
+
+                } catch(err) {
+                    alert("Encryption Error: " + err);
+                }
+            });
+            // 4. Load & Decrypt Logic
+            document.getElementById('load-btn').addEventListener('click', async () => {
+                const master = document.getElementById('master-password').value;
+                if(!master) { alert("Please enter Master Password to decrypt!"); return; }
+
+                document.getElementById('status-msg').innerText = "Downloading from Drive...";
+
+                try {
+                    // A. Get Encrypted File from Server
+                    const res = await fetch('/api/get-vault');
+                    const result = await res.json();
+
+                    if(!res.ok) throw new Error(result.error);
+
+                    // B. Decrypt It
+                    // The file from Drive looks like: { data: "U2FsdGVk...", updatedAt: "..." }
+                    const encryptedString = result.data; 
+
+                    const bytes = CryptoJS.AES.decrypt(encryptedString, master);
+                    const decryptedString = bytes.toString(CryptoJS.enc.Utf8);
+
+                    if(!decryptedString) {
+                        alert("Decryption Failed! Wrong Master Password?");
+                        return;
+                    }
+
+                    const originalPayload = JSON.parse(decryptedString);
+
+                    // C. Show it on screen
+                    document.getElementById('secrets-display').style.display = 'block';
+                    document.getElementById('display-title').innerText = originalPayload.title;
+                    document.getElementById('display-secret').innerText = originalPayload.secret;
+                    document.getElementById('status-msg').innerText = "Decrypted Successfully!";
+
+                } catch (err) {
+                    console.error(err);
+                    alert("Error: " + err.message);
+                }
+            });
+
+        } catch (error) {
+            console.error(error);
+        }
+    </script>
+</body>
+</html>
